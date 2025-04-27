@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "./utils/supabaseClient";
 import AddTask from "./Component/AddTask";
 import TaskBoard from "./Component/TaskBoard";
+import Footer from "./Component/Footer";
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -27,6 +28,8 @@ function App() {
       </h1>
       <AddTask fetchTasks={fetchTasks} />
       <TaskBoard tasks={tasks} fetchTasks={fetchTasks} />
+
+      <Footer/>
     </div>
   );
 }

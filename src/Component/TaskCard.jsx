@@ -60,7 +60,6 @@ const TaskCard = ({ task, fetchTasks }) => {
 
   return (
     <div className="p-4 bg-white rounded-lg shadow hover:shadow-md transition cursor-move relative">
-      {/* Delete Button */}
       <button
         onClick={handleDelete}
         className="absolute top-2 right-2 text-red-600 hover:text-red-800 text-xl"
@@ -131,16 +130,12 @@ const TaskCard = ({ task, fetchTasks }) => {
             onClick={() => handleUpdate("status", status)}
             className={`px-4 py-2 rounded-md text-white font-semibold text-sm ${
               task.status === status
-                ? // Highlight the active status with a brighter color
-                  status === "Done"
+                ? status === "Done"
                   ? "bg-green-600 hover:bg-green-700"
                   : status === "In Progress"
                   ? "bg-blue-500 hover:bg-blue-600"
-                  : status === "Review"
-                  ? "bg-yellow-500 hover:bg-yellow-600"
-                  : "bg-red-500 hover:bg-red-600"
-                : // Default color for inactive status buttons
-                  "bg-gray-300 text-gray-700 hover:bg-gray-400"
+                  : "bg-yellow-500 hover:bg-yellow-600"
+                : "bg-gray-300 text-gray-700 hover:bg-gray-400"
             }`}
           >
             {status}

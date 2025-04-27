@@ -14,7 +14,9 @@ const AddTask = ({ fetchTasks }) => {
 
     const { data, error } = await supabase
       .from("tasks")
-      .insert([{ title, priority, date, status: "Task" }]);
+      .insert([
+        { title, priority, date, status: "Task", user_id: "YOUR_USER_ID" },
+      ]); // Added user_id for each user
 
     if (error) {
       console.error("Error adding task:", error.message);
@@ -46,11 +48,11 @@ const AddTask = ({ fetchTasks }) => {
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value)}
-          className="border rounded px-4 py-3 text-lg"
+          className="border rounded px-4 py-3 text-lg p"
         >
-          <option value="High">🔥 High</option>
-          <option value="Medium">⚡ Medium</option>
-          <option value="Low">🌱 Low</option>
+          <option value="High"> High</option>
+          <option value="Medium"> Medium</option>
+          <option value="Low"> Low</option>
         </select>
         <input
           type="date"
