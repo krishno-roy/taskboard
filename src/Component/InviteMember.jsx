@@ -5,53 +5,49 @@ const InviteMember = ({ projectId, fetchMembers }) => {
   const [email, setEmail] = useState("");
 
   const handleInvite = async () => {
-    if (!email) {
-      alert("Please enter an email!");
-      return;
-    }
-
-    // Step 1: Find user by email
-    const { data: user, error } = await supabase
-      .from("users") // Supabase public.user table access
-      .select("id")
-      .eq("email", email)
-      .single();
-
-    if (error || !user) {
+    // Check if user exists by email
+    const { data: users } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", email);
+    if (users.length === 0) {
       alert("User not found!");
-      console.error(error?.message);
       return;
     }
 
-    // Step 2: Add to project_members table
-    const { error: insertError } = await supabase
-      .from("project_members")
-      .insert([{ project_id: projectId, user_id: user.id }]);
+    const user = users[0];
 
-    if (insertError) {
-      alert("Error inviting member!");
-      console.error(insertError.message);
+    // Add member
+    const { error } = await supabase.from("project_members").insert([
+      {
+        project_id: projectId,
+        user_id: user.id,
+      },
+    ]);
+
+    if (error) {
+      console.error(error);
     } else {
-      alert("Member invited successfully!");
-      setEmail("");
       fetchMembers();
+      setEmail("");
+      alert("Member invited successfully!");
     }
   };
 
   return (
-    <div className="flex gap-2 mb-6">
+    <div className="space-y-2">
       <input
         type="email"
-        placeholder="User Email"
-        className="border p-3 rounded w-full"
+        className="border p-2 rounded w-full"
+        placeholder="Invite by Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
       <button
         onClick={handleInvite}
-        className="bg-green-600 text-white px-4 py-2 rounded"
+        className="bg-green-600 text-white py-2 px-4 rounded"
       >
-        Invite
+        Invite Member
       </button>
     </div>
   );

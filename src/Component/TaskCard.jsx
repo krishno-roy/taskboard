@@ -5,6 +5,8 @@ import { AiTwotoneDelete } from "react-icons/ai";
 const TaskCard = ({ task, fetchTasks }) => {
   const [priority, setPriority] = useState(task.priority);
   const [date, setDate] = useState(task.date);
+  const [title, setTitle] = useState(task.title);
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleDelete = async () => {
     const { error } = await supabase.from("tasks").delete().eq("id", task.id);
@@ -25,6 +27,20 @@ const TaskCard = ({ task, fetchTasks }) => {
     if (error) {
       console.error(`Error updating ${field}:`, error.message);
     } else {
+      fetchTasks();
+    }
+  };
+
+  const handleSaveTitle = async () => {
+    const { error } = await supabase
+      .from("tasks")
+      .update({ title })
+      .eq("id", task.id);
+
+    if (error) {
+      console.error("Error updating title:", error.message);
+    } else {
+      setIsEditing(false);
       fetchTasks();
     }
   };
@@ -53,7 +69,29 @@ const TaskCard = ({ task, fetchTasks }) => {
       </button>
 
       {/* Task Title */}
-      <h3 className="text-lg font-semibold mb-3">{task.title}</h3>
+      {isEditing ? (
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            onClick={handleSaveTitle}
+            className="bg-blue-500 text-white py-1 px-3 rounded-lg"
+          >
+            Save
+          </button>
+        </div>
+      ) : (
+        <h3
+          className="text-lg font-semibold mb-3 cursor-pointer hover:text-blue-600"
+          onClick={() => setIsEditing(true)}
+        >
+          {task.title}
+        </h3>
+      )}
 
       {/* Priority & Date Same Line */}
       <div className="flex items-center justify-between gap-2">
@@ -68,8 +106,8 @@ const TaskCard = ({ task, fetchTasks }) => {
             priority
           )} text-sm cursor-pointer`}
         >
-          <option value="High"> High</option>
-          <option value="Medium"> Medium</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
           <option value="Low">Low</option>
         </select>
 
@@ -83,6 +121,31 @@ const TaskCard = ({ task, fetchTasks }) => {
           }}
           className="border rounded px-3 py-1 text-gray-600 text-sm cursor-pointer"
         />
+      </div>
+
+      {/* Status Update */}
+      <div className="mt-3 flex gap-2">
+        {["In Progress", "Review", "Done"].map((status) => (
+          <button
+            key={status}
+            onClick={() => handleUpdate("status", status)}
+            className={`px-4 py-2 rounded-md text-white font-semibold text-sm ${
+              task.status === status
+                ? // Highlight the active status with a brighter color
+                  status === "Done"
+                  ? "bg-green-600 hover:bg-green-700"
+                  : status === "In Progress"
+                  ? "bg-blue-500 hover:bg-blue-600"
+                  : status === "Review"
+                  ? "bg-yellow-500 hover:bg-yellow-600"
+                  : "bg-red-500 hover:bg-red-600"
+                : // Default color for inactive status buttons
+                  "bg-gray-300 text-gray-700 hover:bg-gray-400"
+            }`}
+          >
+            {status}
+          </button>
+        ))}
       </div>
     </div>
   );
