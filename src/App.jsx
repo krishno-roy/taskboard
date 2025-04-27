@@ -23,7 +23,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-12">
       <h1 className="text-4xl font-bold mb-8 text-center text-blue-700">
-        🛠️ Kanban Board
+        Task Board
       </h1>
       <AddTask fetchTasks={fetchTasks} />
       <TaskBoard tasks={tasks} fetchTasks={fetchTasks} />
