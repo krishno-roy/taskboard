@@ -11,6 +11,8 @@ const TaskCard = ({ task, fetchTasks }) => {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState([]);
+  const [editingComment, setEditingComment] = useState(null);
+  const [updatedCommentText, setUpdatedCommentText] = useState("");
 
   useEffect(() => {
     fetchComments();
@@ -95,6 +97,40 @@ const TaskCard = ({ task, fetchTasks }) => {
     } else {
       setIsEditing(false);
       fetchTasks();
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    const { error } = await supabase
+      .from("comments")
+      .delete()
+      .eq("id", commentId);
+
+    if (error) {
+      console.error("Error deleting comment:", error.message);
+    } else {
+      fetchComments();
+    }
+  };
+
+  const handleEditComment = async (commentId) => {
+    setEditingComment(commentId);
+    const commentToEdit = comments.find((comment) => comment.id === commentId);
+    setUpdatedCommentText(commentToEdit.text);
+  };
+
+  const handleSaveEditedComment = async (commentId) => {
+    const { error } = await supabase
+      .from("comments")
+      .update({ text: updatedCommentText })
+      .eq("id", commentId);
+
+    if (error) {
+      console.error("Error updating comment:", error.message);
+    } else {
+      setEditingComment(null);
+      setUpdatedCommentText("");
+      fetchComments();
     }
   };
 
@@ -229,7 +265,40 @@ const TaskCard = ({ task, fetchTasks }) => {
                   key={comment.id}
                   className="bg-white p-2 rounded shadow text-sm"
                 >
-                  {comment.text}
+                  {editingComment === comment.id ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={updatedCommentText}
+                        onChange={(e) => setUpdatedCommentText(e.target.value)}
+                        className="flex-1 border rounded px-3 py-1 text-sm"
+                      />
+                      <button
+                        onClick={() => handleSaveEditedComment(comment.id)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between">
+                      <span>{comment.text}</span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEditComment(comment.id)}
+                          className="text-yellow-500 hover:text-yellow-600"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))
             ) : (
