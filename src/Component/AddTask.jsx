@@ -12,11 +12,25 @@ const AddTask = ({ fetchTasks }) => {
       return;
     }
 
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(); // ✅ Correct way to get user ID
+
+    if (userError) {
+      console.error("Error fetching user:", userError.message);
+      return;
+    }
+
+    if (!user) {
+      console.error("No user logged in.");
+      alert("You must be logged in to add a task.");
+      return;
+    }
+
     const { data, error } = await supabase
       .from("tasks")
-      .insert([
-        { title, priority, date, status: "Task", user_id: "YOUR_USER_ID" },
-      ]); // Added user_id for each user
+      .insert([{ title, priority, date, status: "Task", user_id: user.id }]);
 
     if (error) {
       console.error("Error adding task:", error.message);
@@ -24,7 +38,7 @@ const AddTask = ({ fetchTasks }) => {
       setTitle("");
       setPriority("Medium");
       setDate("");
-      fetchTasks();
+      fetchTasks(); // reload tasks after adding
     }
   };
 
@@ -48,11 +62,11 @@ const AddTask = ({ fetchTasks }) => {
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value)}
-          className="border rounded px-4 py-3 text-lg p"
+          className="border rounded px-4 py-3 text-lg"
         >
-          <option value="High"> High</option>
-          <option value="Medium"> Medium</option>
-          <option value="Low"> Low</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
         </select>
         <input
           type="date"
