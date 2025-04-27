@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../utils/supabaseClient";
-import { AiTwotoneDelete, AiOutlineMessage } from "react-icons/ai";
+import { AiTwotoneDelete, AiOutlineRollback } from "react-icons/ai";
+import { AiOutlineMessage } from "react-icons/ai";
 
 const TaskCard = ({ task, fetchTasks }) => {
   const [priority, setPriority] = useState(task.priority);
@@ -45,10 +46,26 @@ const TaskCard = ({ task, fetchTasks }) => {
   };
 
   const handleDelete = async () => {
-    const { error } = await supabase.from("tasks").delete().eq("id", task.id);
+    const { error } = await supabase
+      .from("tasks")
+      .update({ is_deleted: true })
+      .eq("id", task.id);
 
     if (error) {
-      console.error("Error deleting task:", error.message);
+      console.error("Error moving task to trash:", error.message);
+    } else {
+      fetchTasks();
+    }
+  };
+
+  const handleRestore = async () => {
+    const { error } = await supabase
+      .from("tasks")
+      .update({ is_deleted: false })
+      .eq("id", task.id);
+
+    if (error) {
+      console.error("Error restoring task:", error.message);
     } else {
       fetchTasks();
     }
@@ -97,18 +114,30 @@ const TaskCard = ({ task, fetchTasks }) => {
   return (
     <div className="p-4 bg-white rounded-lg shadow hover:shadow-md transition cursor-move relative">
       <div className="flex justify-between">
-        <button
-          onClick={handleDelete}
-          className="text-red-600 hover:text-red-800 text-xl"
-        >
-          <AiTwotoneDelete />
-        </button>
-        <button
-          onClick={() => setShowComments(!showComments)}
-          className="text-blue-600 hover:text-blue-800 text-xl"
-        >
-          <AiOutlineMessage />
-        </button>
+        {task.is_deleted ? (
+          <button
+            onClick={handleRestore}
+            className="text-green-600 hover:text-green-800 text-xl"
+          >
+            <AiOutlineRollback />
+          </button>
+        ) : (
+          <button
+            onClick={handleDelete}
+            className="text-red-600 hover:text-red-800 text-xl"
+          >
+            <AiTwotoneDelete />
+          </button>
+        )}
+
+        {!task.is_deleted && (
+          <button
+            onClick={() => setShowComments(!showComments)}
+            className="text-blue-600 hover:text-blue-800 text-xl"
+          >
+            <AiOutlineMessage />
+          </button>
+        )}
       </div>
 
       {/* Task Title */}
@@ -137,56 +166,60 @@ const TaskCard = ({ task, fetchTasks }) => {
       )}
 
       {/* Priority & Date */}
-      <div className="flex items-center justify-between gap-2">
-        <select
-          value={priority}
-          onChange={(e) => {
-            setPriority(e.target.value);
-            handleUpdate("priority", e.target.value);
-          }}
-          className={`px-3 py-1 rounded ${getPriorityColor(
-            priority
-          )} text-sm cursor-pointer`}
-        >
-          <option value="High">High</option>
-          <option value="Medium">Medium</option>
-          <option value="Low">Low</option>
-        </select>
+      {!task.is_deleted && (
+        <>
+          <div className="flex items-center justify-between gap-2">
+            <select
+              value={priority}
+              onChange={(e) => {
+                setPriority(e.target.value);
+                handleUpdate("priority", e.target.value);
+              }}
+              className={`px-3 py-1 rounded ${getPriorityColor(
+                priority
+              )} text-sm cursor-pointer`}
+            >
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
 
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => {
-            setDate(e.target.value);
-            handleUpdate("date", e.target.value);
-          }}
-          className="border rounded px-3 py-1 text-gray-600 text-sm cursor-pointer"
-        />
-      </div>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => {
+                setDate(e.target.value);
+                handleUpdate("date", e.target.value);
+              }}
+              className="border rounded px-3 py-1 text-gray-600 text-sm cursor-pointer"
+            />
+          </div>
 
-      {/* Status Update */}
-      <div className="mt-3 flex gap-2 flex-wrap">
-        {["In Progress", "Review", "Done"].map((status) => (
-          <button
-            key={status}
-            onClick={() => handleUpdate("status", status)}
-            className={`px-4 py-2 rounded-md text-white font-semibold text-sm ${
-              task.status === status
-                ? status === "Done"
-                  ? "bg-green-600 hover:bg-green-700"
-                  : status === "In Progress"
-                  ? "bg-blue-500 hover:bg-blue-600"
-                  : "bg-yellow-500 hover:bg-yellow-600"
-                : "bg-gray-300 text-gray-700 hover:bg-gray-400"
-            }`}
-          >
-            {status}
-          </button>
-        ))}
-      </div>
+          {/* Status Update */}
+          <div className="mt-3 flex gap-2 flex-wrap">
+            {["In Progress", "Review", "Done"].map((status) => (
+              <button
+                key={status}
+                onClick={() => handleUpdate("status", status)}
+                className={`px-4 py-2 rounded-md text-white font-semibold text-sm ${
+                  task.status === status
+                    ? status === "Done"
+                      ? "bg-green-600 hover:bg-green-700"
+                      : status === "In Progress"
+                      ? "bg-blue-500 hover:bg-blue-600"
+                      : "bg-yellow-500 hover:bg-yellow-600"
+                    : "bg-gray-300 text-gray-700 hover:bg-gray-400"
+                }`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Comments Section */}
-      {showComments && (
+      {showComments && !task.is_deleted && (
         <div className="mt-4 bg-gray-50 p-3 rounded-lg">
           <h4 className="font-semibold text-gray-700 mb-2">Comments:</h4>
           <div className="max-h-40 overflow-y-auto space-y-2 mb-2">
