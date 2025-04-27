@@ -7,7 +7,7 @@ const Footer = () => {
 
   return (
     <div className="text-center font-bold text-2xl py-5">
-      Made by{" "}
+      Made by ❤️{" "}
       <button
         onClick={() => setIsOpen(true)}
         className="text-blue-500 hover:underline"
