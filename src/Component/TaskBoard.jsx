@@ -85,13 +85,11 @@ const TaskBoard = ({ tasks, fetchTasks }) => {
     e.preventDefault();
     if (!draggedTask) return;
 
-    // Don't update if status hasn't changed
     if (draggedTask.status === newStatus) {
       setDraggedTask(null);
       return;
     }
 
-    // Update task status in Supabase
     const { error } = await supabase
       .from("tasks")
       .update({ status: newStatus })
@@ -100,10 +98,39 @@ const TaskBoard = ({ tasks, fetchTasks }) => {
     if (error) {
       console.error("Error updating task status:", error.message);
     } else {
-      fetchTasks(); // Refresh the task list
+      fetchTasks();
     }
 
     setDraggedTask(null);
+  };
+
+  // Restore task from trash
+  const handleRestoreTask = async (taskId) => {
+    const { error } = await supabase
+      .from("tasks")
+      .update({ is_deleted: false })
+      .eq("id", taskId);
+
+    if (error) {
+      console.error("Error restoring task:", error.message);
+    } else {
+      fetchTasks();
+    }
+  };
+
+  // Permanently delete task
+  const handlePermanentDelete = async (taskId) => {
+    if (
+      window.confirm("Are you sure you want to permanently delete this task?")
+    ) {
+      const { error } = await supabase.from("tasks").delete().eq("id", taskId);
+
+      if (error) {
+        console.error("Error deleting task:", error.message);
+      } else {
+        fetchTasks();
+      }
+    }
   };
 
   return (
@@ -137,18 +164,26 @@ const TaskBoard = ({ tasks, fetchTasks }) => {
                       <h3 className="font-semibold text-lg mb-2">
                         {task.title}
                       </h3>
+                      <p className="text-sm text-gray-600 mb-2">
+                        Status: {task.status}
+                      </p>
+                      {task.description && (
+                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                          Description: {task.description}
+                        </p>
+                      )}
                       <div className="flex gap-2 mt-auto">
                         <button
                           onClick={() => handleRestoreTask(task.id)}
-                          className="flex-1 bg-green-500 hover:bg-green-600 text-white py-1 rounded text-sm"
+                          className="flex-1 bg-green-500 hover:bg-green-600 text-white py-1 rounded text-sm flex items-center justify-center gap-1"
                         >
-                          Restore
+                          <FaPlus size={12} /> Restore
                         </button>
                         <button
                           onClick={() => handlePermanentDelete(task.id)}
-                          className="flex-1 bg-red-500 hover:bg-red-600 text-white py-1 rounded text-sm"
+                          className="flex-1 bg-red-500 hover:bg-red-600 text-white py-1 rounded text-sm flex items-center justify-center gap-1"
                         >
-                          Delete
+                          <FaTrash size={12} /> Delete
                         </button>
                       </div>
                     </div>
