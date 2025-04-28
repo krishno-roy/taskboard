@@ -12,33 +12,21 @@ const AddTask = ({ fetchTasks }) => {
       return;
     }
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(); // ✅ Correct way to get user ID
-
-    if (userError) {
-      console.error("Error fetching user:", userError.message);
-      return;
-    }
-
-    if (!user) {
-      console.error("No user logged in.");
-      alert("You must be logged in to add a task.");
-      return;
-    }
-
+    // user check বাদ দিলাম
     const { data, error } = await supabase
       .from("tasks")
-      .insert([{ title, priority, date, status: "Task", user_id: user.id }]);
+      .insert([{ title, priority, date, status: "Task" }]); // user_id বাদ
 
     if (error) {
       console.error("Error adding task:", error.message);
+      alert("Error adding task: " + error.message);
     } else {
       setTitle("");
       setPriority("Medium");
       setDate("");
-      fetchTasks(); // reload tasks after adding
+      if (fetchTasks) {
+        fetchTasks(); // reload tasks if fetchTasks provided
+      }
     }
   };
 
